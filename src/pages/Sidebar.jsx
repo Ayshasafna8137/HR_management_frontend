@@ -17,7 +17,10 @@ import {
   UserCheck,
   Settings,
   HelpCircle,
-  Building2
+  Building2,
+  CalendarCheck,
+  PieChart,
+  Layers
 } from 'lucide-react';
 
 // Tooltip Component
@@ -38,6 +41,7 @@ const Sidebar = ({ sidebarOpen }) => {
   const location = useLocation();
   const [employeesOpen, setEmployeesOpen] = useState(false);
   const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const [leaveManagementOpen, setLeaveManagementOpen] = useState(false);
   
   const menuItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -54,16 +58,28 @@ const Sidebar = ({ sidebarOpen }) => {
         { path: '/employees/attendance', icon: Clock, label: 'Employee Attendance' },
       ]
     },
-    { path: '/leave-management', icon: CalendarDays, label: 'Leave Management' },
+    { 
+      type: 'dropdown',
+      icon: CalendarDays, 
+      label: 'Leave Management',
+      isOpen: leaveManagementOpen,
+      setIsOpen: setLeaveManagementOpen,
+      subItems: [
+        { path: '/leave-requests', icon: CalendarCheck, label: 'Leave Requests' },
+        { path: '/leave-balance', icon: PieChart, label: 'Leave Balance' },
+        { path: '/leave-types', icon: Layers, label: 'Leave Types' },
+      ]
+    },
     {
-    type: 'dropdown',
-    icon: Clock,
-    label: 'Attendance',
-    isOpen: attendanceOpen,
-    setIsOpen: setAttendanceOpen,
-    subItems: [
-    { path: '/attendance/today', icon: Clock, label: "Today's Attendance" },
-    ]
+      type: 'dropdown',
+      icon: Clock,
+      label: 'Attendance',
+      isOpen: attendanceOpen,
+      setIsOpen: setAttendanceOpen,
+      subItems: [
+        { path: '/attendance/today', icon: Clock, label: "Today's Attendance" },
+        { path: '/attendance/sheet', icon: FileText, label: 'Attendance Sheet' },
+      ]
     },
     { path: '/holidays', icon: Gift, label: 'Holidays' },
     { path: '/clients', icon: Briefcase, label: 'Clients' },

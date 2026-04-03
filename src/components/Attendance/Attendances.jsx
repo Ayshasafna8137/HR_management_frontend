@@ -10,16 +10,17 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  User
 } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 import { useGetAttendanceQuery } from "@/app/service/attendance";
 import CreateAttendance from "./CreateAttendance";
 import UpdateAttendance from "./UpdateAttendance";
 import DeleteAttendance from "./DeleteAttendance";
 
 const AttendanceList = () => {
-
+  const navigate = useNavigate();
   const { data, refetch, isLoading } =
     useGetAttendanceQuery("69c393e25b8735f88830c9b7");
 
@@ -233,6 +234,13 @@ const AttendanceList = () => {
     return selected || statusOptions[0];
   };
 
+  // Handle row click navigation to employee attendance page
+  const handleRowClick = (employeeId, employeeName) => {
+    navigate(`/attendance/employee/${employeeId}`, { 
+      state: { employeeName, employeeId } 
+    });
+  };
+
   // Export to CSV function
   const exportToExcel = () => {
     if (!filteredData.length) return;
@@ -273,7 +281,7 @@ const AttendanceList = () => {
       <div className="w-full bg-white rounded-lg border overflow-hidden">
 
         <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Today Attendance ({filteredData.length})</h2>
+          <h2 className="text-lg font-semibold">Today Attendance</h2>
         </div>
 
         {/* SEARCH */}
@@ -327,7 +335,7 @@ const AttendanceList = () => {
 
             <button
               onClick={()=>setCreateOpen(true)}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg flex gap-2 hover:bg-purple-700"
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg flex gap-2"
             >
               <Plus size={16}/>
               Add Attendance
@@ -341,14 +349,14 @@ const AttendanceList = () => {
                 type="date"
                 value={filters.startDate}
                 onChange={(e)=>setFilters({...filters,startDate:e.target.value})}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
                 placeholder="Start Date"
               />
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e)=>setFilters({...filters,endDate:e.target.value})}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
                 placeholder="End Date"
               />
               
@@ -434,7 +442,7 @@ const AttendanceList = () => {
           )}
         </div>
 
-        {/* TABLE */}
+        {/* TABLE with clickable rows */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -446,14 +454,14 @@ const AttendanceList = () => {
                 <th className="px-6 py-3 text-left">Status</th>
                 <th className="px-6 py-3 text-left">Shift</th>
                 <th className="px-6 py-3 text-left">Actions</th>
-                 </tr>
+              </tr>
             </thead>
             <tbody>
               {isLoading && (
                 <tr>
                   <td colSpan="7" className="text-center py-6">
                     <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600"></div>
                       <span className="ml-2">Loading attendance...</span>
                     </div>
                   </td>
@@ -473,9 +481,20 @@ const AttendanceList = () => {
               )}
 
               {!isLoading && currentAttendance.map((att) => (
-                <tr key={att._id} className="border-b hover:bg-gray-50">
+                <tr 
+                  key={att._id} 
+                  className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => handleRowClick(att.userId?._id, `${att?.userId?.firstName} ${att?.userId?.lastName}`)}
+                >
                   <td className="px-6 py-4 font-medium whitespace-nowrap">
-                    {att?.userId?.firstName} {att?.userId?.lastName}
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User size={16} className="text-gray-600" />
+                      </div>
+                      <span>
+                        {att?.userId?.firstName} {att?.userId?.lastName}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {formatTime(att?.firstIn)}
@@ -489,6 +508,7 @@ const AttendanceList = () => {
                       att?.status === 'Present' ? 'bg-green-100 text-green-800' :
                       att?.status === 'Late' ? 'bg-yellow-100 text-yellow-800' :
                       att?.status === 'Absent' ? 'bg-red-100 text-red-800' :
+                      att?.status === 'Half Day' ? 'bg-orange-100 text-orange-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {att?.status}
@@ -503,7 +523,7 @@ const AttendanceList = () => {
                       {att?.shift}
                     </span>
                   </td>
-                  <td className="px-6 py-4 flex gap-2">
+                  <td className="px-6 py-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={()=>{
                         setSelectedAttendance(att);
@@ -562,7 +582,7 @@ const AttendanceList = () => {
                       onClick={() => handlePageChange(page)}
                       className={`px-3 py-1 border rounded-lg ${
                         currentPage === page
-                          ? "bg-purple-600 text-white border-purple-600"
+                          ? "bg-purple-600 text-white border-gray-600"
                           : "hover:bg-white"
                       }`}
                     >
